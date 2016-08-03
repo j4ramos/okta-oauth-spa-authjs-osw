@@ -185,7 +185,7 @@ See Open Source Licenses below for complete copy of the Microsoft Software licen
 
 Microsoft.Owin.Security
 Version (if any):	3.0.1
-Brief Description:	Provides default infrastructure types for hosting and running OWIN-based applications.	
+Brief Description:	Common types which are shared by the various authentication middleware components.	
 License:	Microsoft Software License
 
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -226,7 +226,7 @@ See Open Source Licenses below for complete copy of the Apache 2.0 license.
 
 Microsoft.IdentityModel.Logging
 Version (if any):	1.0.0
-Brief Description:	Includes Event Source based logging support..
+Brief Description:	Includes Event Source based logging support.
 License:	Apache 2.0
 
 Copyright (c) Microsoft Corporation. All rights reserved.
