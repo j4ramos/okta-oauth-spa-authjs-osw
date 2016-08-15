@@ -14,7 +14,7 @@ requirejs.config({
     "baseUrl": "js",
     "paths": {
         "jquery": "//ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min",
-        //"okta-auth-sdk": "//ok1static.oktacdn.com/assets/js/sdk/okta-auth-js/1.0.2/okta-auth-js-1.0.2.min",
+        //"okta-auth-sdk": "//ok1static.oktacdn.com/assets/js/sdk/okta-auth-js/1.4.0/okta-auth-js.min",
         "okta-auth-sdk": "./OktaAuth.min",
         "okta-config": "config"
     }
@@ -23,11 +23,14 @@ requirejs.config({
 define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaConfig) {
 
     console.log('Okta Configuration: %o', OktaConfig);
-    console.log(OktaAuth);
     var client = new OktaAuth({
         url: OktaConfig.orgUrl,
         clientId: OktaConfig.clientId,
-        redirectUri: OktaConfig.redirectUri
+        redirectUri: OktaConfig.redirectUri,
+        tokenManager: {
+            storage: 'localStorage',
+            autoRefresh: true,
+        }
     });
 
     var idTokenKey = 'idToken';
@@ -102,10 +105,10 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
             //    Authorization: 'Bearer ' + id_token
             //},
             beforeSend: function (xhr) {
-                var token = localStorage.getItem(idTokenKey);
+                var token = client.tokenManager.get(idTokenKey).idToken;
                 if (OktaConfig.callApiWithAT) {
                     console.log("using the Access Token to call the Resource Server")
-                    token = localStorage.getItem(accessTokenKey);
+                    token = client.tokenManager.get(accessTokenKey).accessToken;
                 }
                 //test with invalid token
                 //token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IlU1UjhjSGJHdzQ0NVFicTh6Vk8xUGNDcFhMOHlHNkljb3ZWYTNsYUNveE0ifQ.eyJ2ZXIiOjEsImp0aSI6IkFULjlZRkpfbjdWS3ZLaGNHVG9Lc2F0OVcyX2wtUzAxT0ltZGlCc1pLb0l0dWsiLCJpc3MiOiJodHRwczovL29pZGNkZW1vcy5va3RhcHJldmlldy5jb20vYXMvb3JzNmRyN2t4OE5FbUVPejQwaDciLCJhdWQiOiJ3TWxvMGw5VDNiZW5jTUsyZXhZOSIsInN1YiI6IjAwdTZkcjdqYnZZRTB5ZDlmMGg3IiwiaWF0IjoxNDY5MTYyMzM2LCJleHAiOjE0NjkxNjU5MzYsImNpZCI6IndNbG8wbDlUM2JlbmNNSzJleFk5IiwidWlkIjoiMDB1NmRyN2pidllFMHlkOWYwaDciLCJzY3AiOlsib3BlbmlkIiwiZW1haWwiLCJwcm9maWxlIiwiYWRkcmVzcyIsInBob25lIiwiZ3JvdXBzIiwib2ZmbGluZV9hY2Nlc3MiXSwiY3VzdG9tLXVzZXJuYW1lIjoiYm9iLWFwcHVzZXJAbWFpbGluYXRvci5jb20ifQ.bHcVHHr6lSwldc1gCW7YC3m4Iig4_2iK-QYBIv7TnYTQAnDlbjRhzxlUiA88ph-pNXPvyz80434-9IB3-1Bq2a19EPyXdBytjOos7dJY2LvUSKa-MprD7W94DsdyczgNHh8SmoiGCeelv8y2apE90ph_O3VjwyGjVvCteY_PIRYPtDsXFOhOTxmndjzmkVJeBxs2Rm8Ve7PDR0Kx11N0NgIxYVsyC7PmW-TjNIhdRZDZx20q7FnXSi6lGVvNrLIEA2DaqhpuHFr5_8vhYVsleDIbpsq3RqrT2whOARAo-NZ3PFko1TNUp3iwoQZHBtRFvTEKhDjWqpL8P3t0haoViQ"
@@ -144,7 +147,6 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
                 switch (tx.status) {
                     case 'SUCCESS':
                         client.token.getWithoutPrompt({
-                            //client.idToken.authorize({
                             //responseType: 'id_token',
                             responseType: ['id_token', 'token'],
                             //responseType: ['id_token'],
@@ -153,18 +155,22 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
                         })
                           .then(function (res) {
                               console.log('Authorize response: ', res);
-                              //console.log('id_token: %s', res[0].idToken);
-                              //console.log('access_token: %s', res[1].accessToken);
+                              
+                              
                               if (Array.isArray(res)) {
+                                  //console.log('handling an array response');
+                                  console.log('id_token: %s', res[0].idToken);
                                   displayClaims(res[0].claims);
-                                  localStorage.setItem(idTokenKey, res[0].idToken);
+                                  client.tokenManager.add(idTokenKey, res[0]);
                                   if (res.length == 2) {
-                                      localStorage.setItem(accessTokenKey, res[1].accessToken);
+                                      console.log('access_token: %s', res[1].accessToken);
+                                      client.tokenManager.add(accessTokenKey, res[1]);
                                   }
                               }
                               else {
+                                  console.log('NOT handling an array response');
                                   displayClaims(res.claims);
-                                  localStorage.setItem(idTokenKey, res.idToken)
+                                  client.tokenManager.add(accessTokenKey, res);
                               }
                               renderUI();
                           })
@@ -197,22 +203,22 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
 
         $('#btn-refresh').click(function () {
             resetDisplay();
-            var idToken = localStorage.getItem(idTokenKey);
+            var idToken = client.tokenManager.get(idTokenKey);
+            console.log('current id token: %s', idToken.idToken);
             if (!idToken) {
                 return displayError('You must first sign-in before you can renew your ID token!');
             }
-            client.idToken.refresh({
-                scopes: OktaConfig.scope
-            })
+            client.tokenManager.refresh(idTokenKey)
               .then(function (res) {
-                  console.log('id_token: %s', idToken);
+                  //console.log('refresh response: %s', res);
+                  console.log('refreshed id_token: %s', res.idToken);
                   displayClaims(res.claims);
-                  localStorage.setItem(idTokenKey, res.idToken);
+                  client.tokenManager.add(idTokenKey, res);
               })
               .fail(function (err) {
                   console.log(err);
                   displayError(err.message);
-                  localStorage.setItem(idTokenKey, null);
+                  client.tokenManager.remove(idTokenKey);
               })
         });
 
