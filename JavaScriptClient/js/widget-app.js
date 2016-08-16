@@ -99,8 +99,6 @@ define(["jquery", "okta-signin", "okta-config"], function ($, OktaSignIn, OktaCo
                 function (err) { console.log('Unexpected error authenticating user: %o', err); }
                 );
             }
-            else {
-            }
         });
     };
 
@@ -184,9 +182,9 @@ define(["jquery", "okta-signin", "okta-config"], function ($, OktaSignIn, OktaCo
                             //showAuthUI(false);
                             location.reload(false);
                             //$('#claims').hide();
-                            
+
                         }
-                    })
+                    });
                 }
             }
         });

@@ -29,7 +29,7 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
         redirectUri: OktaConfig.redirectUri,
         tokenManager: {
             storage: 'localStorage',
-            autoRefresh: true,
+            autoRefresh: true
         }
     });
 
@@ -59,7 +59,7 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
     var renderUI = function () {
         //console.log("rendering UI");
         client.session.exists().done(function (result) {
-            if (result == true) {
+            if (result === true) {
                 hideSignIn();
             }
             else {
@@ -80,7 +80,7 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
     var displayError = function (msg) {
         $('div.error').remove();
         $('div.login-box').append('<div class="error"><p>' + msg + '</p></div>');
-    }
+    };
 
     var callUnsecureWebApi = function () {
         $.ajax({
@@ -93,7 +93,7 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
                 $('#claims').text(data);
             }
         });
-    }
+    };
 
     var callSecureWebApi = function () {
         resetDisplay();
@@ -107,7 +107,7 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
             beforeSend: function (xhr) {
                 var token = client.tokenManager.get(idTokenKey).idToken;
                 if (OktaConfig.callApiWithAT) {
-                    console.log("using the Access Token to call the Resource Server")
+                    console.log("using the Access Token to call the Resource Server");
                     token = client.tokenManager.get(accessTokenKey).accessToken;
                 }
                 //test with invalid token
@@ -116,18 +116,18 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
                 if (token) {
                     xhr.setRequestHeader("Authorization", "Bearer " + token);
                 }
-            },
+            }
         }).done(function (data) {
             $('#claims').empty();
             $('#claims').text(data);
         }).fail(function (jqXHR, textStatus) {
             console.log('error while calling protected web api: ' + textStatus);
             var msg = 'Unable to fetch protected resource';
-            msg += '<br>' + 'You must be signed in AND have the proper permissions to access the protected API endpoint, '
-            msg += '<br>' +  'specifically be part of the Marketing or Finance group (see groups scope value)'
+            msg += '<br>' + 'You must be signed in AND have the proper permissions to access the protected API endpoint, ';
+            msg += '<br>' + 'specifically be part of the Marketing or Finance group (see groups scope value)';
             msg += '<br>' + jqXHR.status + ' ' + jqXHR.responseText;
             if (jqXHR.status === 401) {
-                msg += '<br>Your token may be expired'
+                msg += '<br>Your token may be expired';
             }
             $('#claims').empty();
             displayError(msg);
@@ -155,14 +155,14 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
                         })
                           .then(function (res) {
                               console.log('Authorize response: ', res);
-                              
-                              
+
+
                               if (Array.isArray(res)) {
                                   //console.log('handling an array response');
                                   console.log('id_token: %s', res[0].idToken);
                                   displayClaims(res[0].claims);
                                   client.tokenManager.add(idTokenKey, res[0]);
-                                  if (res.length == 2) {
+                                  if (res.length === 2) {
                                       console.log('access_token: %s', res[1].accessToken);
                                       client.tokenManager.add(accessTokenKey, res[1]);
                                   }
@@ -177,7 +177,7 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
                           .fail(function (err) {
                               console.log(err);
                               displayError(err.message);
-                          })
+                          });
                         break;
                     default:
                         throw 'We cannot handle the ' + tx.status + ' status';
@@ -192,11 +192,11 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
 
         $('#btn-signout').click(function () {
             client.session.exists().done(function (result) {
-                if (result == true) {
+                if (result === true) {
                     client.session.close().done(function (result) {
                         console.log(result);
                         renderUI();
-                    })
+                    });
                 }
             });
         });
@@ -219,7 +219,7 @@ define(["jquery", "okta-auth-sdk", "okta-config"], function ($, OktaAuth, OktaCo
                   console.log(err);
                   displayError(err.message);
                   client.tokenManager.remove(idTokenKey);
-              })
+              });
         });
 
         $('#btn-api-request').click(function () {
