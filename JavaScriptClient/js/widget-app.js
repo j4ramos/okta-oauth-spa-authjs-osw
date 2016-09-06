@@ -16,7 +16,7 @@ requirejs.config({
     "paths": {
         "jquery": "//ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min",
         "okta-config": "config",
-        "okta-signin": "//ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/1.4.0/js/okta-sign-in.min"
+        "okta-signin": "//ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/1.5.0/js/okta-sign-in.min"
     }
 });
 
