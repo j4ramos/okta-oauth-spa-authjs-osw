@@ -1,1 +1,1 @@
-c:\python27\python server.py
+python server.py

@@ -1,5 +1,13 @@
-import SimpleHTTPServer
-import SocketServer
+from __future__ import print_function
+try:
+    import SimpleHTTPServer
+except ImportError:
+    import http.server as SimpleHTTPServer  # for Python3 compatibility
+
+try:
+    import SocketServer
+except ImportError:
+    import socketserver as SocketServer  # for Python3 compatibility
 import logging
 import cgi
 
@@ -30,9 +38,8 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         form = cgi.FieldStorage(
             fp=self.rfile,
             headers=self.headers,
-            environ={'REQUEST_METHOD':'POST',
-                     'CONTENT_TYPE':self.headers['Content-Type'],
-                     })
+            environ=dict(REQUEST_METHOD='POST', CONTENT_TYPE=self.headers['Content-Type'])
+        )
         logging.warning("======= POST VALUES =======")
         for item in form.list:
             logging.warning(item)
@@ -43,5 +50,5 @@ Handler = ServerHandler
 
 httpd = SocketServer.TCPServer(("", PORT), Handler)
 
-print "Serving at: http://%(interface)s:%(port)s" % dict(interface=I or "localhost", port=PORT)
+print("Serving at: http://{interface}:{port}".format(interface=I or "localhost", port=PORT))
 httpd.serve_forever()
